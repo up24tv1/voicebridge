@@ -291,12 +291,12 @@ export default function Translator() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge
-              variant="secondary"
-              className="text-[10px] font-medium hidden sm:inline-flex"
+            <a
+              href="#/"
+              className="text-[10px] text-muted-foreground hover:text-foreground font-medium hidden sm:inline-flex transition-colors"
             >
-              7 Languages
-            </Badge>
+              Interpreter Mode
+            </a>
             <Button
               variant="ghost"
               size="icon"
