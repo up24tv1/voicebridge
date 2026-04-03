@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Anthropic from "@anthropic-ai/sdk";
-import { interpretRequestSchema } from "../shared/schema";
-import { buildInterpreterSystemPrompt } from "../shared/tshiluba-corpus";
+import { interpretRequestSchema, buildInterpreterSystemPrompt } from "./_shared";
 
 const anthropic = new Anthropic();
 
@@ -24,16 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const systemPrompt = buildInterpreterSystemPrompt(sourceLanguage, targetLanguage);
 
-    // Build messages with conversation history for context
     const messages: Array<{ role: "user" | "assistant"; content: string }> = [];
-
-    // Include up to last 10 exchanges for context
     const recentHistory = conversationHistory.slice(-20);
     for (const msg of recentHistory) {
       messages.push({ role: msg.role, content: msg.content });
     }
-
-    // Add current interpretation request
     messages.push({ role: "user", content: text });
 
     const response = await anthropic.messages.create({
@@ -45,26 +39,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const rawText = response.content[0].type === "text" ? response.content[0].text.trim() : "";
 
-    // Parse the JSON response from Claude
     try {
-      // Handle potential markdown fences
-      const cleaned = rawText
-        .replace(/^```json?\s*/i, "")
-        .replace(/\s*```$/i, "")
-        .trim();
-
+      const cleaned = rawText.replace(/^```json?\s*/i, "").replace(/\s*```$/i, "").trim();
       const result = JSON.parse(cleaned);
-
       return res.json({
         interpretedText: result.interpretedText || rawText,
         culturalNote: result.culturalNote || undefined,
         pronunciation: result.pronunciation || undefined,
       });
     } catch {
-      // If JSON parsing fails, return the raw text as interpretation
-      return res.json({
-        interpretedText: rawText,
-      });
+      return res.json({ interpretedText: rawText });
     }
   } catch (error: any) {
     console.error("Interpret error:", error?.message || error);

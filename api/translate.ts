@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Anthropic from "@anthropic-ai/sdk";
-import { translateRequestSchema, SUPPORTED_LANGUAGES } from "../shared/schema";
-import { buildTranslationSystemPrompt } from "../shared/tshiluba-corpus";
+import { translateRequestSchema, SUPPORTED_LANGUAGES, buildTranslationSystemPrompt } from "./_shared";
 
 const anthropic = new Anthropic();
 
@@ -27,25 +26,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const systemPrompt = buildTranslationSystemPrompt(sourceLanguage, targetLanguage);
-
     const sourceName = getLanguageName(sourceLanguage);
     const targetName = getLanguageName(targetLanguage);
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6-20250514",
       max_tokens: 2048,
-      messages: [
-        {
-          role: "user",
-          content: `Translate from ${sourceName} to ${targetName}:\n\n${text}`,
-        },
-      ],
+      messages: [{ role: "user", content: `Translate from ${sourceName} to ${targetName}:\n\n${text}` }],
       system: systemPrompt,
     });
 
-    const translatedText =
-      message.content[0].type === "text" ? message.content[0].text.trim() : "";
-
+    const translatedText = message.content[0].type === "text" ? message.content[0].text.trim() : "";
     return res.json({ translatedText, sourceLanguage, targetLanguage });
   } catch (error: any) {
     console.error("Translation error:", error?.message || error);
