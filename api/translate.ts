@@ -66,7 +66,7 @@ Rules:
 ${examples ? `\nReference examples:\n${examples}` : ""}`;
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6-20250514", max_tokens: 2048,
+      model: "claude-sonnet-4-5-20241022", max_tokens: 2048,
       messages: [{ role: "user", content: `Translate from ${srcName} to ${tgtName}:\n\n${text}` }],
       system: systemPrompt,
     });
